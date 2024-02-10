@@ -1,5 +1,3 @@
-
-
 package csc133;
 import org.joml.Matrix4f;
 import org.lwjgl.BufferUtils;
@@ -15,12 +13,8 @@ import static org.lwjgl.system.MemoryUtil.*;
 
 
 public class Main {
-    GLFWErrorCallback errorCallback;
-    GLFWKeyCallback keyCallback;
-    GLFWFramebufferSizeCallback fbCallback;
-    long window;
     static int WIN_WIDTH = 1800, WIN_HEIGHT = 1200;
-    int WIN_POS_X = 30, WIN_POX_Y = 90;
+    static long window = csc133.slWindow.getWindow(WIN_WIDTH, WIN_HEIGHT);
     private static final int OGL_MATRIX_SIZE = 16;
     // call glCreateProgram() here - we have no gl-context here
     int shader_program;
@@ -28,58 +22,20 @@ public class Main {
     FloatBuffer myFloatBuffer = BufferUtils.createFloatBuffer(OGL_MATRIX_SIZE);
     int vpMatLocation = 0, renderColorLocation = 0;
     public static void main(String[] args) {
-        new csc133.slWindow().slWindow(WIN_WIDTH, WIN_HEIGHT);
         new Main().render();
     } // public static void main(String[] args)
+
     void render() {
         try {
-            initGLFWindow();
+            csc133.slWindow.initGLFWindow(window);
             renderLoop();
-            glfwDestroyWindow(window);
-            keyCallback.free();
-            fbCallback.free();
+            csc133.slWindow.destroyWindow(window);
         } finally {
             glfwTerminate();
             glfwSetErrorCallback(null).free();
         }
     } // void render()
-    private void initGLFWindow() {
-        glfwSetErrorCallback(errorCallback =
-                GLFWErrorCallback.createPrint(System.err));
-        if (!glfwInit())
-            throw new IllegalStateException("Unable to initialize GLFW");
-        glfwDefaultWindowHints();
-        glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
-        glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
-        glfwWindowHint(GLFW_SAMPLES, 8);
-        window = glfwCreateWindow(WIN_WIDTH, WIN_HEIGHT, "CSC 133", NULL, NULL);
-        if (window == NULL)
-            throw new RuntimeException("Failed to create the GLFW window");
-        glfwSetKeyCallback(window, keyCallback = new GLFWKeyCallback() {
-            @Override
-            public void invoke(long window, int key, int scancode, int action, int
-                    mods) {
-                if (key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE)
-                    glfwSetWindowShouldClose(window, true);
-            }
-        });
-        glfwSetFramebufferSizeCallback(window, fbCallback = new
-                GLFWFramebufferSizeCallback() {
-                    @Override
-                    public void invoke(long window, int w, int h) {
-                        if (w > 0 && h > 0) {
-                            WIN_WIDTH = w;
-                            WIN_HEIGHT = h;
-                        }
-                    }
-                });
-        GLFWVidMode vidmode = glfwGetVideoMode(glfwGetPrimaryMonitor());
-        glfwSetWindowPos(window, WIN_POS_X, WIN_POX_Y);
-        glfwMakeContextCurrent(window);
-        int VSYNC_INTERVAL = 1;
-        glfwSwapInterval(VSYNC_INTERVAL);
-        glfwShowWindow(window);
-    } // private void initGLFWindow()
+
     void renderLoop() {
         glfwPollEvents();
         initOpenGL();
@@ -89,6 +45,7 @@ public class Main {
             glfwWaitEvents();
         }
     } // void renderLoop()
+
     void initOpenGL() {
         GL.createCapabilities();
         glEnable(GL_DEPTH_TEST);
@@ -117,6 +74,7 @@ public class Main {
         vpMatLocation = glGetUniformLocation(shader_program, "viewProjMatrix");
         return;
     } // void initOpenGL()
+
     void renderObjects() {
         while (!glfwWindowShouldClose(window)) {
             glfwPollEvents();
