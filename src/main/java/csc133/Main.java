@@ -24,6 +24,10 @@ public class Main {
     int vps = 4, fpv = 2, ips = 6; // vertices per square, float per vertices, indices per square
     int MAX_ROWS = 7, MAX_COLS = 5; // rows and cols for the square matrix
     int xOffset = 10, yOffset = 150, length = 10, padding = 5;
+    float red = 0.0f, green = 0.0f, blue = 1.0f, alpha = 1.0f;
+    float v0 = 1.0f, v1 = 0.498f, v2 = 0.153f;
+    int coordinatesPerVertex = 2;
+    long zFar = 10;
 
     public static void main(String[] args) {
         new Main().render();
@@ -55,7 +59,7 @@ public class Main {
         glEnable(GL_DEPTH_TEST);
         glEnable(GL_CULL_FACE);
         glViewport(0, 0, WIN_WIDTH, WIN_HEIGHT);
-        glClearColor(0.0f, 0.0f, 1.0f, 1.0f);
+        glClearColor(red, green, blue, alpha);
         this.shader_program = glCreateProgram();
         int vs = glCreateShader(GL_VERTEX_SHADER);
         glShaderSource(vs,
@@ -110,6 +114,7 @@ public class Main {
         return vertices;
     }
 
+    // generate all the indices for the matrix of squares
     int[] getIndices(int MAX_ROWS, int MAX_COLS, int ips, int vps) {
         int[] indices =  new int[MAX_ROWS * MAX_COLS * ips];
 
@@ -150,17 +155,15 @@ public class Main {
                     createIntBuffer(indices.length).
                     put(indices).flip(), GL_STATIC_DRAW);
 
-            glVertexPointer(2, GL_FLOAT, 0, 0L);
+            glVertexPointer(coordinatesPerVertex, GL_FLOAT, 0, 0L);
 
-            viewProjMatrix.setOrtho(0, (float) WIN_WIDTH, 0, (float) WIN_HEIGHT, 0, 10);
+            viewProjMatrix.setOrtho(0, (float) WIN_WIDTH, 0, (float) WIN_HEIGHT, 0, zFar);
 
             glUniformMatrix4fv(vpMatLocation, false,
                     viewProjMatrix.get(myFloatBuffer));
 
-            glUniform3f(renderColorLocation, 1.0f, 0.498f, 0.153f);
+            glUniform3f(renderColorLocation, v0, v1, v2);
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-
-            int VTD = 6; // need to process 6 Vertices To Draw 2 triangles
 
             glDrawElements(GL_TRIANGLES, indices.length, GL_UNSIGNED_INT, 0L);
             glfwSwapBuffers(window);
