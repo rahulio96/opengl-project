@@ -168,9 +168,7 @@ public class Main {
 
             int VTD = 6; // need to process 6 Vertices To Draw 2 triangles
 
-            for (int i = 0; i < MAX_ROWS * MAX_COLS; i++) {
-                glDrawElements(GL_TRIANGLES, MAX_COLS * MAX_ROWS * ips, GL_UNSIGNED_INT, 0L);
-            }
+            glDrawElements(GL_TRIANGLES, MAX_COLS * MAX_ROWS * ips, GL_UNSIGNED_INT, 0L);
             glfwSwapBuffers(window);
 
         }
