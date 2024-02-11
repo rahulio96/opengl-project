@@ -13,7 +13,7 @@ import static org.lwjgl.system.MemoryUtil.*;
 
 
 public class Main {
-    static int WIN_WIDTH = 900, WIN_HEIGHT = 900;
+    static int WIN_WIDTH = 1200, WIN_HEIGHT = 1200;
     static long window = csc133.slWindow.getWindow(WIN_WIDTH, WIN_HEIGHT);
     private static final int OGL_MATRIX_SIZE = 16;
     // call glCreateProgram() here - we have no gl-context here
@@ -21,6 +21,10 @@ public class Main {
     Matrix4f viewProjMatrix = new Matrix4f();
     FloatBuffer myFloatBuffer = BufferUtils.createFloatBuffer(OGL_MATRIX_SIZE);
     int vpMatLocation = 0, renderColorLocation = 0;
+    int vps = 4, fpv = 2, ips = 6; // vertices per square, float per vertices, indices per square
+    int MAX_ROWS = 7, MAX_COLS = 5; // rows and cols for the square matrix
+    int xOffset = 10, yOffset = 150, length = 10, padding = 5;
+
     public static void main(String[] args) {
         new Main().render();
     } // public static void main(String[] args)
@@ -75,21 +79,12 @@ public class Main {
         return;
     } // void initOpenGL()
 
-    int vps = 4; // vertices per square
-    int fpv = 2; // float per vertices
-    int ips = 6; // indices per square
-    int MAX_ROWS = 7; // rows for the square matrix
-    int MAX_COLS = 5; // cols for the square matrix
-    int offset = 10;
-    int padding = 5;
-    int length = 10;
-
-    float[] getVertices(int MAX_ROWS, int MAX_COLS, int vps, int fpv, int offset, int length, int padding) {
+    float[] getVertices(int MAX_ROWS, int MAX_COLS, int vps, int fpv, int xOffset, int yOffset, int length, int padding) {
         float[] vertices = new float[MAX_ROWS * MAX_COLS * vps * fpv];
 
-        int xmin = offset;
+        int xmin = xOffset;
         int xmax = xmin + length;
-        int ymax = 200 - offset;
+        int ymax = WIN_HEIGHT - yOffset;
         int ymin = ymax - length;
         int index = 0;
 
@@ -107,7 +102,7 @@ public class Main {
                 xmin = xmax + padding;
                 xmax = xmin + length;
             }
-            xmin = offset;
+            xmin = xOffset;
             xmax = xmin + length;
             ymax = ymin - padding;
             ymin = ymax - length;
@@ -131,7 +126,6 @@ public class Main {
 
             v_index += vps;
         }
-
         return indices;
     }
 
@@ -142,7 +136,7 @@ public class Main {
             int vbo = glGenBuffers();
             int ibo = glGenBuffers();
 
-            float[] vertices = getVertices(MAX_ROWS, MAX_COLS, vps, fpv, offset, length, padding);
+            float[] vertices = getVertices(MAX_ROWS, MAX_COLS, vps, fpv, xOffset, yOffset, length, padding);
             int[] indices = getIndices(MAX_ROWS, MAX_COLS, ips, vps);
 
             glBindBuffer(GL_ARRAY_BUFFER, vbo);
@@ -158,7 +152,7 @@ public class Main {
 
             glVertexPointer(2, GL_FLOAT, 0, 0L);
 
-            viewProjMatrix.setOrtho(0, 200, 0, 200, 0, 10);
+            viewProjMatrix.setOrtho(0, (float) WIN_WIDTH, 0, (float) WIN_HEIGHT, 0, 10);
 
             glUniformMatrix4fv(vpMatLocation, false,
                     viewProjMatrix.get(myFloatBuffer));
@@ -170,7 +164,6 @@ public class Main {
 
             glDrawElements(GL_TRIANGLES, indices.length, GL_UNSIGNED_INT, 0L);
             glfwSwapBuffers(window);
-
         }
     } // renderObjects
 }
