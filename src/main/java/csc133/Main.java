@@ -13,7 +13,7 @@ import static org.lwjgl.system.MemoryUtil.*;
 
 
 public class Main {
-    static int WIN_WIDTH = 1200, WIN_HEIGHT = 1200;
+    static int WIN_WIDTH = 900, WIN_HEIGHT = 900;
     static long window = csc133.slWindow.getWindow(WIN_WIDTH, WIN_HEIGHT);
     private static final int OGL_MATRIX_SIZE = 16;
     // call glCreateProgram() here - we have no gl-context here
@@ -23,7 +23,7 @@ public class Main {
     int vpMatLocation = 0, renderColorLocation = 0;
     int vps = 4, fpv = 2, ips = 6; // vertices per square, float per vertices, indices per square
     int MAX_ROWS = 7, MAX_COLS = 5; // rows and cols for the square matrix
-    int xOffset = 10, yOffset = 150, length = 10, padding = 5;
+    int offset = 10, length = 10, padding = 5;
     float red = 0.0f, green = 0.0f, blue = 1.0f, alpha = 1.0f;
     float v0 = 1.0f, v1 = 0.498f, v2 = 0.153f;
     int coordinatesPerVertex = 2;
@@ -83,12 +83,12 @@ public class Main {
         return;
     } // void initOpenGL()
 
-    float[] getVertices(int MAX_ROWS, int MAX_COLS, int vps, int fpv, int xOffset, int yOffset, int length, int padding) {
+    float[] getVertices(int MAX_ROWS, int MAX_COLS, int vps, int fpv, int offset, int length, int padding) {
         float[] vertices = new float[MAX_ROWS * MAX_COLS * vps * fpv];
 
-        int xmin = xOffset;
+        int xmin = offset;
         int xmax = xmin + length;
-        int ymax = WIN_HEIGHT - yOffset;
+        int ymax = WIN_HEIGHT - offset;
         int ymin = ymax - length;
         int index = 0;
 
@@ -106,7 +106,7 @@ public class Main {
                 xmin = xmax + padding;
                 xmax = xmin + length;
             }
-            xmin = xOffset;
+            xmin = offset;
             xmax = xmin + length;
             ymax = ymin - padding;
             ymin = ymax - length;
@@ -141,7 +141,7 @@ public class Main {
             int vbo = glGenBuffers();
             int ibo = glGenBuffers();
 
-            float[] vertices = getVertices(MAX_ROWS, MAX_COLS, vps, fpv, xOffset, yOffset, length, padding);
+            float[] vertices = getVertices(MAX_ROWS, MAX_COLS, vps, fpv, offset, length, padding);
             int[] indices = getIndices(MAX_ROWS, MAX_COLS, ips, vps);
 
             glBindBuffer(GL_ARRAY_BUFFER, vbo);
