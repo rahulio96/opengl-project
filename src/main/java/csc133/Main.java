@@ -1,5 +1,3 @@
-
-
 package csc133;
 import org.joml.Matrix4f;
 import org.lwjgl.BufferUtils;
@@ -15,71 +13,37 @@ import static org.lwjgl.system.MemoryUtil.*;
 
 
 public class Main {
-    GLFWErrorCallback errorCallback;
-    GLFWKeyCallback keyCallback;
-    GLFWFramebufferSizeCallback fbCallback;
-    long window;
-    static int WIN_WIDTH = 1800, WIN_HEIGHT = 1200;
-    int WIN_POS_X = 30, WIN_POX_Y = 90;
+    static int WIN_WIDTH = 900, WIN_HEIGHT = 900;
+    static long window = csc133.slWindow.getWindow(WIN_WIDTH, WIN_HEIGHT);
     private static final int OGL_MATRIX_SIZE = 16;
     // call glCreateProgram() here - we have no gl-context here
     int shader_program;
     Matrix4f viewProjMatrix = new Matrix4f();
     FloatBuffer myFloatBuffer = BufferUtils.createFloatBuffer(OGL_MATRIX_SIZE);
     int vpMatLocation = 0, renderColorLocation = 0;
+    int vps = 4, fpv = 2, ips = 6; // vertices per square, float per vertices, indices per square
+    int MAX_ROWS = 7, MAX_COLS = 5; // rows and cols for the square matrix
+    int offset = 10, length = 10, padding = 5;
+    float red = 0.0f, green = 0.0f, blue = 1.0f, alpha = 1.0f;
+    float v0 = 1.0f, v1 = 0.498f, v2 = 0.153f;
+    int coordinatesPerVertex = 2;
+    long zFar = 10;
+
     public static void main(String[] args) {
-        new csc133.slWindow().slWindow(WIN_WIDTH, WIN_HEIGHT);
         new Main().render();
     } // public static void main(String[] args)
+
     void render() {
         try {
-            initGLFWindow();
+            csc133.slWindow.initGLFWindow(window);
             renderLoop();
-            glfwDestroyWindow(window);
-            keyCallback.free();
-            fbCallback.free();
+            csc133.slWindow.destroyWindow(window);
         } finally {
             glfwTerminate();
             glfwSetErrorCallback(null).free();
         }
     } // void render()
-    private void initGLFWindow() {
-        glfwSetErrorCallback(errorCallback =
-                GLFWErrorCallback.createPrint(System.err));
-        if (!glfwInit())
-            throw new IllegalStateException("Unable to initialize GLFW");
-        glfwDefaultWindowHints();
-        glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
-        glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
-        glfwWindowHint(GLFW_SAMPLES, 8);
-        window = glfwCreateWindow(WIN_WIDTH, WIN_HEIGHT, "CSC 133", NULL, NULL);
-        if (window == NULL)
-            throw new RuntimeException("Failed to create the GLFW window");
-        glfwSetKeyCallback(window, keyCallback = new GLFWKeyCallback() {
-            @Override
-            public void invoke(long window, int key, int scancode, int action, int
-                    mods) {
-                if (key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE)
-                    glfwSetWindowShouldClose(window, true);
-            }
-        });
-        glfwSetFramebufferSizeCallback(window, fbCallback = new
-                GLFWFramebufferSizeCallback() {
-                    @Override
-                    public void invoke(long window, int w, int h) {
-                        if (w > 0 && h > 0) {
-                            WIN_WIDTH = w;
-                            WIN_HEIGHT = h;
-                        }
-                    }
-                });
-        GLFWVidMode vidmode = glfwGetVideoMode(glfwGetPrimaryMonitor());
-        glfwSetWindowPos(window, WIN_POS_X, WIN_POX_Y);
-        glfwMakeContextCurrent(window);
-        int VSYNC_INTERVAL = 1;
-        glfwSwapInterval(VSYNC_INTERVAL);
-        glfwShowWindow(window);
-    } // private void initGLFWindow()
+
     void renderLoop() {
         glfwPollEvents();
         initOpenGL();
@@ -89,12 +53,13 @@ public class Main {
             glfwWaitEvents();
         }
     } // void renderLoop()
+
     void initOpenGL() {
         GL.createCapabilities();
         glEnable(GL_DEPTH_TEST);
         glEnable(GL_CULL_FACE);
         glViewport(0, 0, WIN_WIDTH, WIN_HEIGHT);
-        glClearColor(0.0f, 0.0f, 1.0f, 1.0f);
+        glClearColor(red, green, blue, alpha);
         this.shader_program = glCreateProgram();
         int vs = glCreateShader(GL_VERTEX_SHADER);
         glShaderSource(vs,
@@ -117,31 +82,90 @@ public class Main {
         vpMatLocation = glGetUniformLocation(shader_program, "viewProjMatrix");
         return;
     } // void initOpenGL()
+
+    float[] getVertices(int MAX_ROWS, int MAX_COLS, int vps, int fpv, int offset, int length, int padding) {
+        float[] vertices = new float[MAX_ROWS * MAX_COLS * vps * fpv];
+
+        int xmin = offset;
+        int xmax = xmin + length;
+        int ymax = WIN_HEIGHT - offset;
+        int ymin = ymax - length;
+        int index = 0;
+
+        for (int row = 0; row < MAX_ROWS; row++) {
+            for (int col = 0; col < MAX_COLS; col++) {
+                vertices[index++] = xmin;
+                vertices[index++] = ymin;
+                vertices[index++] = xmax;
+                vertices[index++] = ymin;
+                vertices[index++] = xmax;
+                vertices[index++] = ymax;
+                vertices[index++] = xmin;
+                vertices[index++] = ymax;
+
+                xmin = xmax + padding;
+                xmax = xmin + length;
+            }
+            xmin = offset;
+            xmax = xmin + length;
+            ymax = ymin - padding;
+            ymin = ymax - length;
+        }
+        return vertices;
+    }
+
+    // generate all the indices for the matrix of squares
+    int[] getIndices(int MAX_ROWS, int MAX_COLS, int ips, int vps) {
+        int[] indices =  new int[MAX_ROWS * MAX_COLS * ips];
+
+        int index = 0;
+        int v_index = 0;
+
+        while (index < indices.length) {
+            indices[index++] = v_index;
+            indices[index++] = v_index + 1;
+            indices[index++] = v_index + 2;
+            indices[index++] = v_index;
+            indices[index++] = v_index + 2;
+            indices[index++] = v_index + 3;
+
+            v_index += vps;
+        }
+        return indices;
+    }
+
     void renderObjects() {
         while (!glfwWindowShouldClose(window)) {
             glfwPollEvents();
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             int vbo = glGenBuffers();
             int ibo = glGenBuffers();
-            float[] vertices = {-20f, -20f, 20f, -20f, 20f, 20f, -20f, 20f};
-            int[] indices = {0, 1, 2, 0, 2, 3};
+
+            float[] vertices = getVertices(MAX_ROWS, MAX_COLS, vps, fpv, offset, length, padding);
+            int[] indices = getIndices(MAX_ROWS, MAX_COLS, ips, vps);
+
             glBindBuffer(GL_ARRAY_BUFFER, vbo);
             glBufferData(GL_ARRAY_BUFFER, (FloatBuffer) BufferUtils.
                     createFloatBuffer(vertices.length).
                     put(vertices).flip(), GL_STATIC_DRAW);
+
             glEnableClientState(GL_VERTEX_ARRAY);
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
             glBufferData(GL_ELEMENT_ARRAY_BUFFER, (IntBuffer) BufferUtils.
                     createIntBuffer(indices.length).
                     put(indices).flip(), GL_STATIC_DRAW);
-            glVertexPointer(2, GL_FLOAT, 0, 0L);
-            viewProjMatrix.setOrtho(-100, 100, -100, 100, 0, 10);
+
+            glVertexPointer(coordinatesPerVertex, GL_FLOAT, 0, 0L);
+
+            viewProjMatrix.setOrtho(0, (float) WIN_WIDTH, 0, (float) WIN_HEIGHT, 0, zFar);
+
             glUniformMatrix4fv(vpMatLocation, false,
                     viewProjMatrix.get(myFloatBuffer));
-            glUniform3f(renderColorLocation, 1.0f, 0.498f, 0.153f);
+
+            glUniform3f(renderColorLocation, v0, v1, v2);
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-            int VTD = 6; // need to process 6 Vertices To Draw 2 triangles
-            glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0L);
+
+            glDrawElements(GL_TRIANGLES, indices.length, GL_UNSIGNED_INT, 0L);
             glfwSwapBuffers(window);
         }
     } // renderObjects
