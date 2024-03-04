@@ -8,6 +8,7 @@ import org.lwjgl.opengl.GL;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 
+import static csc133.spot.*;
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.glfw.GLFW.glfwSwapBuffers;
 import static org.lwjgl.opengl.GL11.*;
@@ -18,21 +19,15 @@ import static org.lwjgl.opengl.GL20.*;
 import static org.lwjgl.opengl.GL20.glUniform3f;
 
 public class slSingleBatchRenderer {
-    public static int WIN_WIDTH = 900, WIN_HEIGHT = 900;
-    static long window;
+    private static long window;
     private static final int OGL_MATRIX_SIZE = 16;
     // call glCreateProgram() here - we have no gl-context here
-    int shader_program;
-    Matrix4f viewProjMatrix = new Matrix4f();
-    FloatBuffer myFloatBuffer = BufferUtils.createFloatBuffer(OGL_MATRIX_SIZE);
-    int vpMatLocation = 0, renderColorLocation = 0;
-    int vps = 4, fpv = 2, ips = 6; // vertices per square, float per vertices, indices per square
-    int MAX_ROWS = 7, MAX_COLS = 5; // rows and cols for the square matrix
-    int offset = 10, length = 10, padding = 5;
-    float red = 0.0f, green = 0.0f, blue = 1.0f, alpha = 1.0f;
-    float v0 = 1.0f, v1 = 0.498f, v2 = 0.153f;
-    int coordinatesPerVertex = 2;
-    long zFar = 10;
+    private static int shader_program;
+    private static Matrix4f viewProjMatrix = new Matrix4f();
+    private static FloatBuffer myFloatBuffer = BufferUtils.createFloatBuffer(OGL_MATRIX_SIZE);
+    private static int vpMatLocation = 0, renderColorLocation = 0;
+    private static int coordinatesPerVertex = 2;
+
     public void render() {
         window = slWindow.getWindow();
         try {
@@ -158,15 +153,14 @@ public class slSingleBatchRenderer {
 
             glVertexPointer(coordinatesPerVertex, GL_FLOAT, 0, 0L);
 
-            //viewProjMatrix.setOrtho(0, (float) WIN_WIDTH, 0, (float) WIN_HEIGHT, 0, zFar);
             slCamera my_cam = new slCamera();
-            my_cam.setProjectionOrtho(0, (float) WIN_WIDTH, 0, (float) WIN_HEIGHT, 0, zFar);
+            my_cam.setProjectionOrtho();
             viewProjMatrix = my_cam.getProjectionMatrix();
 
             glUniformMatrix4fv(vpMatLocation, false,
                     viewProjMatrix.get(myFloatBuffer));
 
-            glUniform3f(renderColorLocation, v0, v1, v2);
+            glUniform3f(renderColorLocation, VEC_RC.x, VEC_RC.y, VEC_RC.z);
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
             glDrawElements(GL_TRIANGLES, indices.length, GL_UNSIGNED_INT, 0L);
