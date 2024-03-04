@@ -157,7 +157,10 @@ public class Main {
 
             glVertexPointer(coordinatesPerVertex, GL_FLOAT, 0, 0L);
 
-            viewProjMatrix.setOrtho(0, (float) WIN_WIDTH, 0, (float) WIN_HEIGHT, 0, zFar);
+            //viewProjMatrix.setOrtho(0, (float) WIN_WIDTH, 0, (float) WIN_HEIGHT, 0, zFar);
+            slCamera my_cam = new slCamera();
+            my_cam.setProjectionOrtho(0, (float) WIN_WIDTH, 0, (float) WIN_HEIGHT, 0, zFar);
+            viewProjMatrix = my_cam.getProjectionMatrix();
 
             glUniformMatrix4fv(vpMatLocation, false,
                     viewProjMatrix.get(myFloatBuffer));
