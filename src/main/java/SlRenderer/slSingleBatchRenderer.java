@@ -18,8 +18,8 @@ import static org.lwjgl.opengl.GL20.*;
 import static org.lwjgl.opengl.GL20.glUniform3f;
 
 public class slSingleBatchRenderer {
-    static int WIN_WIDTH = 900, WIN_HEIGHT = 900;
-    static long window = slWindow.getWindow(WIN_WIDTH, WIN_HEIGHT);
+    public static int WIN_WIDTH = 900, WIN_HEIGHT = 900;
+    static long window;
     private static final int OGL_MATRIX_SIZE = 16;
     // call glCreateProgram() here - we have no gl-context here
     int shader_program;
@@ -33,11 +33,9 @@ public class slSingleBatchRenderer {
     float v0 = 1.0f, v1 = 0.498f, v2 = 0.153f;
     int coordinatesPerVertex = 2;
     long zFar = 10;
-
-
     public void render() {
+        window = slWindow.getWindow();
         try {
-            slWindow.initGLFWindow(window);
             renderLoop();
             slWindow.destroyWindow(window);
         } finally {
