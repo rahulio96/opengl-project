@@ -1,5 +1,5 @@
 
-package csc133;
+package SlRenderer;
 
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.glfw.GLFWFramebufferSizeCallback;
