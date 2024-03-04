@@ -1,6 +1,5 @@
 package SlRenderer;
 
-import csc133.slCamera;
 import org.joml.Matrix4f;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL;
