@@ -81,14 +81,10 @@ public class slSingleBatchRenderer {
     float[] getVertices(int MAX_ROWS, int MAX_COLS, int vps, int fpv, int offset, int length, int padding) {
         float[] vertices = new float[MAX_ROWS * MAX_COLS * vps * fpv];
 
-        int totalSquaresWidth = MAX_COLS * (length + padding) - padding;
-        int totalSquaresHeight = MAX_ROWS * (length + padding) - padding;
-        int xOffset = (WIN_WIDTH - totalSquaresWidth) / 2;
-        int yOffset = (WIN_HEIGHT - totalSquaresHeight) / 2;
 
-        int xmin = xOffset;
+        int xmin = offset;
         int xmax = xmin + length;
-        int ymax = WIN_HEIGHT - yOffset;
+        int ymax = WIN_HEIGHT - offset;
         int ymin = ymax - length;
         int index = 0;
 
@@ -106,7 +102,7 @@ public class slSingleBatchRenderer {
                 xmin = xmax + padding;
                 xmax = xmin + length;
             }
-            xmin = xOffset;
+            xmin = offset;
             xmax = xmin + length;
             ymax = ymin - padding;
             ymin = ymax - length;

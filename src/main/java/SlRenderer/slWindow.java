@@ -5,7 +5,7 @@ import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.glfw.GLFWFramebufferSizeCallback;
 import org.lwjgl.glfw.GLFWKeyCallback;
 import org.lwjgl.glfw.GLFWVidMode;
-
+import static csc133.spot.*;
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.system.MemoryUtil.NULL;
 
@@ -14,7 +14,6 @@ public class slWindow {
     private static GLFWFramebufferSizeCallback fbCallback;
 
     private static long window = -1;
-    private static int WIN_WIDTH = 900, WIN_HEIGHT = 900;
     private static final int WIN_POS_X = 30, WIN_POS_Y = 90;
 
     // Creates and returns the glfw window
