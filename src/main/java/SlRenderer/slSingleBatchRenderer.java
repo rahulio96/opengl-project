@@ -6,6 +6,7 @@ import org.lwjgl.opengl.GL;
 
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
+import java.util.Random;
 
 import static csc133.spot.*;
 import static org.lwjgl.glfw.GLFW.*;
@@ -24,7 +25,7 @@ public class slSingleBatchRenderer {
     private static int shader_program;
     private static Matrix4f viewProjMatrix = new Matrix4f();
     private static FloatBuffer myFloatBuffer = BufferUtils.createFloatBuffer(OGL_MATRIX_SIZE);
-    private static int vpMatLocation = 0, renderColorLocation = 0;
+    private static int vpMatLocation = 0, renderColorLocation = 1;
     private static int coordinatesPerVertex = 2;
 
     public void render() {
@@ -66,9 +67,9 @@ public class slSingleBatchRenderer {
         glAttachShader(shader_program, vs);
         int fs = glCreateShader(GL_FRAGMENT_SHADER);
         glShaderSource(fs,
-                "uniform vec3 color;" +
+                "uniform vec3 renderColorLocation;" +
                         "void main(void) {" +
-                        " gl_FragColor = vec4("+renderColorLocation+","+ VEC_RC.x+","+ VEC_RC.y+","+ VEC_RC.z+");" +
+                        " gl_FragColor = vec4(renderColorLocation, 1.0);" +
                         "}");
         glCompileShader(fs);
         glAttachShader(shader_program, fs);
@@ -160,10 +161,17 @@ public class slSingleBatchRenderer {
             glUniformMatrix4fv(vpMatLocation, false,
                     viewProjMatrix.get(myFloatBuffer));
 
-            glUniform3f(renderColorLocation, VEC_RC.x, VEC_RC.y, VEC_RC.z);
-            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-
-            glDrawElements(GL_TRIANGLES, indices.length, GL_UNSIGNED_INT, 0L);
+            for (int i = 0; i< MAX_ROWS * MAX_COLS * 4; i++) {
+                Random rand = new Random();
+                int randInt = rand.nextInt(100);
+                if (randInt < 50) {
+                    glUniform3f(renderColorLocation, VEC_RC.x, VEC_RC.y, VEC_RC.z);
+                } else {
+                    glUniform3f(renderColorLocation, 1f, 1f, 1f);
+                }
+                glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+                glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, (long) i * ips);
+            }
             glfwSwapBuffers(window);
         }
     } // renderObjects
