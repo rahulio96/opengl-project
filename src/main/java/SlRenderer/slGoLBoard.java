@@ -1,4 +1,4 @@
-package csc133;
+package SlRenderer;
 
 import java.util.Random;
 abstract class slGoLBoard {

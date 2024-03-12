@@ -1,4 +1,4 @@
-package csc133;
+package SlRenderer;
 
 public class slGoLBoardLive extends slGoLBoard {
     public slGoLBoardLive(int numRows, int numCols) {
@@ -12,24 +12,17 @@ public class slGoLBoardLive extends slGoLBoard {
     @Override
     public int countLiveTwoDegreeNeighbors(int row, int col) {
         int count = 0;
-        // all directions we need to move in
-        int [][] directions = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}, {1, 1}, {-1, -1}, {1, -1}, {-1, 1}};
-        for (int[] direction : directions) {
-            int new_r = row + direction[0], new_c = col + direction[1];
 
-            // wrap around if out of bounds
-            if (new_r < 0) {
-                new_r = NUM_ROWS - 1;
-            }
-            if (new_c < 0) {
-                new_c = NUM_COLS - 1;
-            }
-            if (new_r >= NUM_ROWS) {
-                new_r = 0;
-            }
-            if (new_c >= NUM_COLS) {
-                new_c = 0;
-            }
+        int prevRow = (row - 1 + NUM_ROWS) % (NUM_ROWS);
+        int prevCol = (col - 1 + NUM_COLS) % (NUM_COLS);
+        int nextRow = (row + 1) % NUM_ROWS;
+        int nextCol = (col + 1) % NUM_COLS;
+
+        // all directions we need to move in
+        int [][] directions = {{nextRow, col}, {prevRow, col}, {row, nextCol}, {row, prevCol},
+                {nextRow, nextCol}, {prevRow, prevCol}, {nextRow, prevCol}, {prevRow, nextCol}};
+        for (int[] direction : directions) {
+            int new_r = direction[0], new_c = direction[1];
 
             // see if cell is alive or not
             if (liveCellArray[new_r][new_c]) {
