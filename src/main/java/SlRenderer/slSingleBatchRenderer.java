@@ -26,6 +26,7 @@ public class slSingleBatchRenderer {
     private static FloatBuffer myFloatBuffer = BufferUtils.createFloatBuffer(OGL_MATRIX_SIZE);
     private static int vpMatLocation = 0, renderColorLocation = 1;
     private static int coordinatesPerVertex = 2;
+    private static slGoLBoard GoLBoard = new slGoLBoardLive(MAX_ROWS, MAX_COLS);
 
     public void render() {
         window = slWindow.getWindow();
@@ -131,10 +132,8 @@ public class slSingleBatchRenderer {
     }
 
     void renderObjects() {
-        slGoLBoard my_board = new slGoLBoardLive(MAX_ROWS, MAX_COLS);
         while (!glfwWindowShouldClose(window)) {
-            int row = 0;
-            int col = 0;
+            int vertexCount = 0;
             glfwPollEvents();
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             int vbo = glGenBuffers();
@@ -162,22 +161,19 @@ public class slSingleBatchRenderer {
 
             glUniformMatrix4fv(vpMatLocation, false,
                     viewProjMatrix.get(myFloatBuffer));
-
-            for (int i = 0; i < vps*MAX_ROWS*MAX_COLS; i+=vps) {
-                if (my_board.getLiveCellArray()[row][col]) {
-                    glUniform3f(renderColorLocation, ALIVE.x, ALIVE.y, ALIVE.z);
-                } else {
-                    glUniform3f(renderColorLocation, DEAD.x, DEAD.y, DEAD.z);
-                }
-                glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-                glDrawElements(GL_TRIANGLES, ips, GL_UNSIGNED_INT, (long) i * ips);
-                col++;
-                if (col == MAX_COLS) {
-                    col = 0;
-                    row++;
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+            for (int row = 0; row < MAX_ROWS; row++) {
+                for (int col = 0; col < MAX_COLS; col++) {
+                    if (GoLBoard.getLiveCellArray()[row][col]) {
+                        glUniform3f(renderColorLocation, ALIVE.x, ALIVE.y, ALIVE.z);
+                    } else {
+                        glUniform3f(renderColorLocation, DEAD.x, DEAD.y, DEAD.z);
+                    }
+                    glDrawElements(GL_TRIANGLES, ips, GL_UNSIGNED_INT, (long) vertexCount * ips);
+                    vertexCount+=vps;
                 }
             }
-            my_board.updateNextCellArray();
+            GoLBoard.updateNextCellArray();
             glfwSwapBuffers(window);
         }
     } // renderObjects
