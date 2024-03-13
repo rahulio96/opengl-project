@@ -161,16 +161,16 @@ public class slSingleBatchRenderer {
             glUniformMatrix4fv(vpMatLocation, false,
                     viewProjMatrix.get(myFloatBuffer));
 
-            for (int i = 0; i< MAX_ROWS * MAX_COLS * 4; i++) {
+            for (int i = 0; i < vertices.length; i+=vps) {
                 Random rand = new Random();
                 int randInt = rand.nextInt(100);
                 if (randInt < 50) {
                     glUniform3f(renderColorLocation, VEC_RC.x, VEC_RC.y, VEC_RC.z);
                 } else {
-                    glUniform3f(renderColorLocation, 1f, 1f, 1f);
+                    glUniform3f(renderColorLocation, 1f, 0f, 0f);
                 }
                 glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-                glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, (long) i * ips);
+                glDrawElements(GL_TRIANGLES, ips, GL_UNSIGNED_INT, (long) i * ips);
             }
             glfwSwapBuffers(window);
         }
