@@ -6,7 +6,6 @@ import org.lwjgl.opengl.GL;
 
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
-import java.util.Random;
 
 import static csc133.spot.*;
 import static org.lwjgl.glfw.GLFW.*;
@@ -132,7 +131,10 @@ public class slSingleBatchRenderer {
     }
 
     void renderObjects() {
+        slGoLBoard my_board = new slGoLBoardLive(MAX_ROWS, MAX_COLS);
         while (!glfwWindowShouldClose(window)) {
+            int row = 0;
+            int col = 0;
             glfwPollEvents();
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             int vbo = glGenBuffers();
@@ -161,17 +163,21 @@ public class slSingleBatchRenderer {
             glUniformMatrix4fv(vpMatLocation, false,
                     viewProjMatrix.get(myFloatBuffer));
 
-            for (int i = 0; i < vertices.length; i+=vps) {
-                Random rand = new Random();
-                int randInt = rand.nextInt(100);
-                if (randInt < 50) {
-                    glUniform3f(renderColorLocation, VEC_RC.x, VEC_RC.y, VEC_RC.z);
+            for (int i = 0; i < vps*MAX_ROWS*MAX_COLS; i+=vps) {
+                if (my_board.getLiveCellArray()[row][col]) {
+                    glUniform3f(renderColorLocation, ALIVE.x, ALIVE.y, ALIVE.z);
                 } else {
-                    glUniform3f(renderColorLocation, 1f, 0f, 0f);
+                    glUniform3f(renderColorLocation, DEAD.x, DEAD.y, DEAD.z);
                 }
                 glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
                 glDrawElements(GL_TRIANGLES, ips, GL_UNSIGNED_INT, (long) i * ips);
+                col++;
+                if (col == MAX_COLS) {
+                    col = 0;
+                    row++;
+                }
             }
+            my_board.updateNextCellArray();
             glfwSwapBuffers(window);
         }
     } // renderObjects

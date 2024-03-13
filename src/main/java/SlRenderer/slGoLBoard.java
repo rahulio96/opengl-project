@@ -59,7 +59,7 @@ abstract class slGoLBoard {
         nextCellArray = cellArrayB;
     }  //  public slGoLBoard(int numRows, int numCols, int numAlive)
 
-    private boolean[][] getLiveCellArray() {
+    public boolean[][] getLiveCellArray() {
         return liveCellArray;
     }
     private boolean[][] getNextCellArray() {
