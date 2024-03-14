@@ -174,6 +174,7 @@ public class slSingleBatchRenderer {
                 }
             }
             GoLBoard.updateNextCellArray();
+            GoLBoard.copyLiveToNext();
             glfwSwapBuffers(window);
         }
     } // renderObjects

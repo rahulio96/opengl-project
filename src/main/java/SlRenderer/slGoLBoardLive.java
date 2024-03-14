@@ -46,7 +46,7 @@ public class slGoLBoardLive extends slGoLBoard {
                 if (!ccs && nln == 3) {
                     nextCellArray[row][col] = true;
                     ++retVal;
-                } else {
+                } else if (ccs) {
                     // Current Cell Status is true
                     if (nln < 2 || nln > 3) {
                         nextCellArray[row][col] = false;
