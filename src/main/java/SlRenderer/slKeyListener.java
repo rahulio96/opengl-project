@@ -1,4 +1,4 @@
-package slge;
+package SlRenderer;
 
 import static org.lwjgl.glfw.GLFW.*;
 

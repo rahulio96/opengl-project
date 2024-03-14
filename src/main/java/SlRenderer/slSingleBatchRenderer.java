@@ -7,6 +7,8 @@ import org.lwjgl.opengl.GL;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 
+import static SlRenderer.slKeyListener.isKeyPressed;
+import static SlRenderer.slKeyListener.resetKeypressEvent;
 import static csc133.spot.*;
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.glfw.GLFW.glfwSwapBuffers;
@@ -28,7 +30,7 @@ public class slSingleBatchRenderer {
     private static int coordinatesPerVertex = 2;
     private static slGoLBoard GoLBoard = new slGoLBoardLive(MAX_ROWS, MAX_COLS);
 
-    public void render() {
+    public void render() throws InterruptedException {
         window = slWindow.getWindow();
         try {
             renderLoop();
@@ -40,7 +42,7 @@ public class slSingleBatchRenderer {
     } // void render()
 
 
-    void renderLoop() {
+    void renderLoop() throws InterruptedException {
         glfwPollEvents();
         initOpenGL();
         renderObjects();
@@ -131,8 +133,41 @@ public class slSingleBatchRenderer {
         return indices;
     }
 
-    void renderObjects() {
+    void renderObjects() throws InterruptedException {
+        boolean delayFrame = false;
+        boolean haltRendering = false;
+        glfwSetKeyCallback(window, slKeyListener::keyCallback);
         while (!glfwWindowShouldClose(window)) {
+            if (delayFrame) {
+                Thread.sleep(500);
+            }
+            glfwPollEvents();
+            if (isKeyPressed(GLFW_KEY_D)) {
+                delayFrame = !delayFrame;
+                resetKeypressEvent(GLFW_KEY_D);
+            }
+            if (isKeyPressed(GLFW_KEY_H)) {
+                haltRendering = true;
+                resetKeypressEvent(GLFW_KEY_H);
+            }
+            if (isKeyPressed(GLFW_KEY_SPACE)) {
+                haltRendering = false;
+                resetKeypressEvent(GLFW_KEY_SPACE);
+            }
+            if (isKeyPressed(GLFW_KEY_SLASH) && isKeyPressed(GLFW_KEY_LEFT_SHIFT)) {
+                System.out.println("Print this text --> ?");
+                System.out.println("Toggle 500 ms frame delay --> d");
+                System.out.println("Toggle frame rate display --> f");
+                System.out.println("Halt the engine --> h");
+                System.out.println("Reset board --> r");
+                System.out.println("Resume engine --> SPACE");
+                System.out.println("Save engine state to a file --> s");
+                System.out.println("Load engine state from a file --> l");
+                System.out.println("Exit application --> ESC");
+                resetKeypressEvent(GLFW_KEY_SLASH);
+                resetKeypressEvent(GLFW_KEY_LEFT_SHIFT);
+            }
+
             int vertexCount = 0;
             glfwPollEvents();
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -175,7 +210,9 @@ public class slSingleBatchRenderer {
             }
             GoLBoard.updateNextCellArray();
             GoLBoard.copyLiveToNext();
-            glfwSwapBuffers(window);
+            if (!haltRendering) {
+                glfwSwapBuffers(window);
+            }
         }
     } // renderObjects
 }
