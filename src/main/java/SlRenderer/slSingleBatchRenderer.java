@@ -142,18 +142,22 @@ public class slSingleBatchRenderer {
                 Thread.sleep(500);
             }
             glfwPollEvents();
+            // Delay framerate
             if (isKeyPressed(GLFW_KEY_D)) {
                 delayFrame = !delayFrame;
                 resetKeypressEvent(GLFW_KEY_D);
             }
+            // Stop rendering
             if (isKeyPressed(GLFW_KEY_H)) {
                 haltRendering = true;
                 resetKeypressEvent(GLFW_KEY_H);
             }
+            // Resume Rendering
             if (isKeyPressed(GLFW_KEY_SPACE)) {
                 haltRendering = false;
                 resetKeypressEvent(GLFW_KEY_SPACE);
             }
+            // Usage (Help)
             if (isKeyPressed(GLFW_KEY_SLASH) && isKeyPressed(GLFW_KEY_LEFT_SHIFT)) {
                 System.out.println("Print this text --> ?");
                 System.out.println("Toggle 500 ms frame delay --> d");
@@ -166,6 +170,16 @@ public class slSingleBatchRenderer {
                 System.out.println("Exit application --> ESC");
                 resetKeypressEvent(GLFW_KEY_SLASH);
                 resetKeypressEvent(GLFW_KEY_LEFT_SHIFT);
+            }
+            // Close window
+            if (isKeyPressed(GLFW_KEY_ESCAPE)) {
+                glfwSetWindowShouldClose(window, true);
+                resetKeypressEvent(GLFW_KEY_ESCAPE);
+            }
+            // Reset the board randomly
+            if (isKeyPressed(GLFW_KEY_R)) {
+                GoLBoard = new slGoLBoardLive(MAX_ROWS, MAX_COLS);
+                resetKeypressEvent(GLFW_KEY_R);
             }
 
             int vertexCount = 0;
@@ -208,9 +222,9 @@ public class slSingleBatchRenderer {
                     vertexCount+=vps;
                 }
             }
-            GoLBoard.updateNextCellArray();
-            GoLBoard.copyLiveToNext();
             if (!haltRendering) {
+                GoLBoard.updateNextCellArray();
+                GoLBoard.copyLiveToNext();
                 glfwSwapBuffers(window);
             }
         }
