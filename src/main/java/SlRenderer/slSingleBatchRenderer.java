@@ -1,14 +1,16 @@
 package SlRenderer;
 
+import csc133.spot;
 import org.joml.Matrix4f;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL;
 
 import javax.swing.*;
+import java.io.File;
 import java.io.FileWriter;
-import java.io.IOException;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
+import java.util.Scanner;
 
 import static SlRenderer.slKeyListener.isKeyPressed;
 import static SlRenderer.slKeyListener.resetKeypressEvent;
@@ -145,7 +147,7 @@ public class slSingleBatchRenderer {
                 try {
                     Thread.sleep(500);
                 } catch (Exception e) {
-                    System.out.println("Error: " + e.getMessage());
+                    System.out.println("Error when delaying: " + e.getMessage());
                 }
             }
             glfwPollEvents();
@@ -192,7 +194,35 @@ public class slSingleBatchRenderer {
             if (isKeyPressed(GLFW_KEY_L)) {
                 haltRendering = true;
                 JFileChooser fc = new JFileChooser();
+                int userInput = fc.showOpenDialog(null);
+                if (userInput == JFileChooser.APPROVE_OPTION) {
+                    try {
+                        File saveFile = fc.getSelectedFile();
+                        Scanner myReader = new Scanner(saveFile);
+                        int fileRow = Integer.parseInt(myReader.nextLine());
+                        int fileCol = Integer.parseInt(myReader.nextLine());
+                        MAX_ROWS = fileRow;
+                        MAX_COLS = fileCol;
+                        boolean[][] loadedBoard = new boolean[MAX_ROWS][MAX_COLS];
+                        for (int r = 0; r < MAX_ROWS; r++) {
+                            for (int c = 0; c < MAX_COLS; c++) {
+                                String next = myReader.next();
+                                while (next.equals(" ")) {
+                                    next = myReader.next();
+                                }
+                                if (Integer.parseInt(next) == 1) {
+                                    loadedBoard[r][c] = true;
+                                } else {
+                                    loadedBoard[r][c] = false;
+                                }
+                            }
+                        }
+                        GoLBoard.liveCellArray = loadedBoard;
+                    } catch (Exception e) {
+                        System.out.println("Error when reading file: "+e.getMessage());
+                    }
 
+                }
                 resetKeypressEvent(GLFW_KEY_L);
                 haltRendering = false;
             }
@@ -262,7 +292,7 @@ public class slSingleBatchRenderer {
                     }
                     JOptionPane.showMessageDialog(null, "GoL Board saved to: " + fileName);
                 } catch (Exception e) {
-                    JOptionPane.showMessageDialog(null, "Error saving string to file: " + e.getMessage());
+                    JOptionPane.showMessageDialog(null, "Error saving board to file: " + e.getMessage());
                 }
                 resetKeypressEvent(GLFW_KEY_S);
                 haltRendering = false;
