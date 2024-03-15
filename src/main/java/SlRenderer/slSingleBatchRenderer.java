@@ -139,31 +139,47 @@ public class slSingleBatchRenderer {
     }
 
     void renderObjects() {
-        boolean delayFrame = false;
-        boolean haltRendering = false;
+        boolean isDelayFrame = false;
+        boolean isHaltRendering = false;
+        boolean isDisplayFPS = false;
+        double curTime;
+        double prevTime = glfwGetTime();
+        double deltaTime;
+        int frameCount = 0;
+        double fps;
+
         glfwSetKeyCallback(window, slKeyListener::keyCallback);
         while (!glfwWindowShouldClose(window)) {
-            if (delayFrame) {
+            if (isDelayFrame) {
                 try {
                     Thread.sleep(500);
                 } catch (Exception e) {
                     System.out.println("Error when delaying: " + e.getMessage());
                 }
             }
+            if (isDisplayFPS) {
+                curTime = glfwGetTime();
+                deltaTime = curTime - prevTime;
+                frameCount++;
+                fps = frameCount / deltaTime;
+                System.out.println("FPS: " + fps);
+                frameCount = 0;
+                prevTime = curTime;
+            }
             glfwPollEvents();
             // Delay framerate
             if (isKeyPressed(GLFW_KEY_D)) {
-                delayFrame = !delayFrame;
+                isDelayFrame = !isDelayFrame;
                 resetKeypressEvent(GLFW_KEY_D);
             }
             // Stop rendering
             if (isKeyPressed(GLFW_KEY_H)) {
-                haltRendering = true;
+                isHaltRendering = true;
                 resetKeypressEvent(GLFW_KEY_H);
             }
             // Resume Rendering
             if (isKeyPressed(GLFW_KEY_SPACE)) {
-                haltRendering = false;
+                isHaltRendering = false;
                 resetKeypressEvent(GLFW_KEY_SPACE);
             }
             // Usage (Help)
@@ -190,9 +206,14 @@ public class slSingleBatchRenderer {
                 GoLBoard = new slGoLBoardLive(spot.MAX_ROWS, spot.MAX_COLS);
                 resetKeypressEvent(GLFW_KEY_R);
             }
+            // Toggle framerate in console
+            if (isKeyPressed(GLFW_KEY_F)) {
+                isDisplayFPS = !isDisplayFPS;
+                resetKeypressEvent(GLFW_KEY_F);
+            }
             // Load board file
             if (isKeyPressed(GLFW_KEY_L)) {
-                haltRendering = true;
+                isHaltRendering = true;
                 JFileChooser fc = new JFileChooser();
                 int userInput = fc.showOpenDialog(null);
                 if (userInput == JFileChooser.APPROVE_OPTION) {
@@ -224,7 +245,7 @@ public class slSingleBatchRenderer {
 
                 }
                 resetKeypressEvent(GLFW_KEY_L);
-                haltRendering = false;
+                isHaltRendering = false;
             }
 
             int vertexCount = 0;
@@ -270,7 +291,7 @@ public class slSingleBatchRenderer {
             // Save here before so current frame is saved!
             // Safe board to file
             if (isKeyPressed(GLFW_KEY_S)) {
-                haltRendering = true;
+                isHaltRendering = true;
                 boolean[][] curCellArray = GoLBoard.getLiveCellArray();
                 String fileName = JOptionPane.showInputDialog("Please type the file's name");
                 if (!fileName.contains(".ca")) {
@@ -295,9 +316,9 @@ public class slSingleBatchRenderer {
                     JOptionPane.showMessageDialog(null, "Error saving board to file: " + e.getMessage());
                 }
                 resetKeypressEvent(GLFW_KEY_S);
-                haltRendering = false;
+                isHaltRendering = false;
             }
-            if (!haltRendering) {
+            if (!isHaltRendering) {
                 GoLBoard.updateNextCellArray();
                 GoLBoard.copyLiveToNext();
                 glfwSwapBuffers(window);
