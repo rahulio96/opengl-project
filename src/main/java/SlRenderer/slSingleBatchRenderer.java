@@ -141,6 +141,7 @@ public class slSingleBatchRenderer {
     void renderObjects() {
         boolean isDelayFrame = false;
         boolean isHaltRendering = false;
+        boolean alreadyHalted = false;
         boolean isDisplayFPS = false;
         double curTime;
         double prevTime = glfwGetTime();
@@ -169,21 +170,28 @@ public class slSingleBatchRenderer {
             glfwPollEvents();
             // Delay framerate
             if (isKeyPressed(GLFW_KEY_D)) {
+                isHaltRendering = true;
                 isDelayFrame = !isDelayFrame;
                 resetKeypressEvent(GLFW_KEY_D);
+                if (!alreadyHalted) {
+                    isHaltRendering = false;
+                }
             }
             // Stop rendering
             if (isKeyPressed(GLFW_KEY_H)) {
                 isHaltRendering = true;
+                alreadyHalted = true;
                 resetKeypressEvent(GLFW_KEY_H);
             }
             // Resume Rendering
             if (isKeyPressed(GLFW_KEY_SPACE)) {
                 isHaltRendering = false;
+                alreadyHalted = false;
                 resetKeypressEvent(GLFW_KEY_SPACE);
             }
             // Usage (Help)
             if (isKeyPressed(GLFW_KEY_SLASH) && isKeyPressed(GLFW_KEY_LEFT_SHIFT)) {
+                isHaltRendering = true;
                 System.out.println("Print this text --> ?");
                 System.out.println("Toggle 500 ms frame delay --> d");
                 System.out.println("Toggle frame rate display --> f");
@@ -195,21 +203,36 @@ public class slSingleBatchRenderer {
                 System.out.println("Exit application --> ESC");
                 resetKeypressEvent(GLFW_KEY_SLASH);
                 resetKeypressEvent(GLFW_KEY_LEFT_SHIFT);
+                if (!alreadyHalted) {
+                    isHaltRendering = false;
+                }
             }
             // Close window
             if (isKeyPressed(GLFW_KEY_ESCAPE)) {
+                isHaltRendering = true;
                 glfwSetWindowShouldClose(window, true);
                 resetKeypressEvent(GLFW_KEY_ESCAPE);
+                if (!alreadyHalted) {
+                    isHaltRendering = false;
+                }
             }
             // Reset the board randomly
             if (isKeyPressed(GLFW_KEY_R)) {
+                isHaltRendering = true;
                 GoLBoard = new slGoLBoardLive(spot.MAX_ROWS, spot.MAX_COLS);
                 resetKeypressEvent(GLFW_KEY_R);
+                if (!alreadyHalted) {
+                    isHaltRendering = false;
+                }
             }
             // Toggle framerate in console
             if (isKeyPressed(GLFW_KEY_F)) {
+                isHaltRendering = true;
                 isDisplayFPS = !isDisplayFPS;
                 resetKeypressEvent(GLFW_KEY_F);
+                if (!alreadyHalted) {
+                    isHaltRendering = false;
+                }
             }
             // Load board file
             if (isKeyPressed(GLFW_KEY_L)) {
@@ -293,28 +316,31 @@ public class slSingleBatchRenderer {
             if (isKeyPressed(GLFW_KEY_S)) {
                 isHaltRendering = true;
                 boolean[][] curCellArray = GoLBoard.getLiveCellArray();
-                String fileName = JOptionPane.showInputDialog("Please type the file's name");
-                if (!fileName.contains(".ca")) {
-                    fileName += ".ca";
-                }
-                try (FileWriter writer = new FileWriter(fileName)) {
-                    writer.write(spot.MAX_ROWS+"\n");
-                    writer.write(spot.MAX_COLS+"\n");
-                    for (int r = 0; r < spot.MAX_ROWS; r++) {
-                        String rowString = "";
-                        for (int c = 0; c < spot.MAX_COLS; c++) {
-                            if (curCellArray[r][c]) {
-                                rowString += "1 ";
-                            } else {
-                                rowString += "0 ";
-                            }
-                        }
-                        writer.write(rowString+"\n");
+                try {
+                    String fileName = JOptionPane.showInputDialog("Please type the file's name");
+
+                    if (!fileName.contains(".ca")) {
+                        fileName += ".ca";
                     }
-                    JOptionPane.showMessageDialog(null, "GoL Board saved to: " + fileName);
-                } catch (Exception e) {
-                    JOptionPane.showMessageDialog(null, "Error saving board to file: " + e.getMessage());
-                }
+                    try (FileWriter writer = new FileWriter(fileName)) {
+                        writer.write(spot.MAX_ROWS + "\n");
+                        writer.write(spot.MAX_COLS + "\n");
+                        for (int r = 0; r < spot.MAX_ROWS; r++) {
+                            String rowString = "";
+                            for (int c = 0; c < spot.MAX_COLS; c++) {
+                                if (curCellArray[r][c]) {
+                                    rowString += "1 ";
+                                } else {
+                                    rowString += "0 ";
+                                }
+                            }
+                            writer.write(rowString + "\n");
+                        }
+                        JOptionPane.showMessageDialog(null, "GoL Board saved to: " + fileName);
+                    } catch (Exception e) {
+                        JOptionPane.showMessageDialog(null, "Error saving board to file: " + e.getMessage());
+                    }
+                } catch (Exception ignored) {}
                 resetKeypressEvent(GLFW_KEY_S);
                 isHaltRendering = false;
             }
