@@ -4,6 +4,9 @@ import org.joml.Matrix4f;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL;
 
+import javax.swing.*;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 
@@ -30,7 +33,7 @@ public class slSingleBatchRenderer {
     private static int coordinatesPerVertex = 2;
     private static slGoLBoard GoLBoard = new slGoLBoardLive(MAX_ROWS, MAX_COLS);
 
-    public void render() throws InterruptedException {
+    public void render() {
         window = slWindow.getWindow();
         try {
             renderLoop();
@@ -42,7 +45,7 @@ public class slSingleBatchRenderer {
     } // void render()
 
 
-    void renderLoop() throws InterruptedException {
+    void renderLoop() {
         glfwPollEvents();
         initOpenGL();
         renderObjects();
@@ -133,13 +136,17 @@ public class slSingleBatchRenderer {
         return indices;
     }
 
-    void renderObjects() throws InterruptedException {
+    void renderObjects() {
         boolean delayFrame = false;
         boolean haltRendering = false;
         glfwSetKeyCallback(window, slKeyListener::keyCallback);
         while (!glfwWindowShouldClose(window)) {
             if (delayFrame) {
-                Thread.sleep(500);
+                try {
+                    Thread.sleep(500);
+                } catch (Exception e) {
+                    System.out.println("Error: " + e.getMessage());
+                }
             }
             glfwPollEvents();
             // Delay framerate
@@ -181,6 +188,14 @@ public class slSingleBatchRenderer {
                 GoLBoard = new slGoLBoardLive(MAX_ROWS, MAX_COLS);
                 resetKeypressEvent(GLFW_KEY_R);
             }
+            // Load board file
+            if (isKeyPressed(GLFW_KEY_L)) {
+                haltRendering = true;
+                JFileChooser fc = new JFileChooser();
+
+                resetKeypressEvent(GLFW_KEY_L);
+                haltRendering = false;
+            }
 
             int vertexCount = 0;
             glfwPollEvents();
@@ -221,6 +236,36 @@ public class slSingleBatchRenderer {
                     glDrawElements(GL_TRIANGLES, ips, GL_UNSIGNED_INT, (long) vertexCount * ips);
                     vertexCount+=vps;
                 }
+            }
+            // Save here before so current frame is saved!
+            // Safe board to file
+            if (isKeyPressed(GLFW_KEY_S)) {
+                haltRendering = true;
+                boolean[][] curCellArray = GoLBoard.getLiveCellArray();
+                String fileName = JOptionPane.showInputDialog("Please type the file's name");
+                if (!fileName.contains(".ca")) {
+                    fileName += ".ca";
+                }
+                try (FileWriter writer = new FileWriter(fileName)) {
+                    writer.write(MAX_ROWS+"\n");
+                    writer.write(MAX_COLS+"\n");
+                    for (int r = 0; r < MAX_ROWS; r++) {
+                        String rowString = "";
+                        for (int c = 0; c < MAX_COLS; c++) {
+                            if (curCellArray[r][c]) {
+                                rowString += "1 ";
+                            } else {
+                                rowString += "0 ";
+                            }
+                        }
+                        writer.write(rowString+"\n");
+                    }
+                    JOptionPane.showMessageDialog(null, "GoL Board saved to: " + fileName);
+                } catch (Exception e) {
+                    JOptionPane.showMessageDialog(null, "Error saving string to file: " + e.getMessage());
+                }
+                resetKeypressEvent(GLFW_KEY_S);
+                haltRendering = false;
             }
             if (!haltRendering) {
                 GoLBoard.updateNextCellArray();
