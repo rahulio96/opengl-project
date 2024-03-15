@@ -5,7 +5,7 @@ import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.glfw.GLFWFramebufferSizeCallback;
 import org.lwjgl.glfw.GLFWKeyCallback;
 import org.lwjgl.glfw.GLFWVidMode;
-import static csc133.spot.*;
+import csc133.spot;
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.system.MemoryUtil.NULL;
 
@@ -28,7 +28,7 @@ public class slWindow {
             glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
             glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
             glfwWindowHint(GLFW_SAMPLES, 8);
-            window = glfwCreateWindow(WIN_WIDTH, WIN_HEIGHT, "CSC 133", NULL, NULL);
+            window = glfwCreateWindow(spot.WIN_WIDTH, spot.WIN_HEIGHT, "CSC 133", NULL, NULL);
 
             if (window == NULL)
                 throw new RuntimeException("Failed to create the GLFW window");
@@ -45,8 +45,8 @@ public class slWindow {
                         @Override
                         public void invoke(long window, int w, int h) {
                             if (w > 0 && h > 0) {
-                                WIN_WIDTH = w;
-                                WIN_HEIGHT = h;
+                                spot.WIN_WIDTH = w;
+                                spot.WIN_HEIGHT = h;
                             }
                         }
                     });
@@ -62,8 +62,8 @@ public class slWindow {
 
     // Overloading function
     public static long getWindow(int w, int h) {
-        WIN_WIDTH = w;
-        WIN_HEIGHT = h;
+        spot.WIN_WIDTH = w;
+        spot.WIN_HEIGHT = h;
         return getWindow();
     }
 

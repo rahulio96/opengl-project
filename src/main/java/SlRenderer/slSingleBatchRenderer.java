@@ -14,7 +14,7 @@ import java.util.Scanner;
 
 import static SlRenderer.slKeyListener.isKeyPressed;
 import static SlRenderer.slKeyListener.resetKeypressEvent;
-import static csc133.spot.*;
+//import static csc133.spot.*;
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.glfw.GLFW.glfwSwapBuffers;
 import static org.lwjgl.opengl.GL11.*;
@@ -33,7 +33,7 @@ public class slSingleBatchRenderer {
     private static FloatBuffer myFloatBuffer = BufferUtils.createFloatBuffer(OGL_MATRIX_SIZE);
     private static int vpMatLocation = 0, renderColorLocation = 1;
     private static int coordinatesPerVertex = 2;
-    private static slGoLBoard GoLBoard = new slGoLBoardLive(MAX_ROWS, MAX_COLS);
+    private static slGoLBoard GoLBoard = new slGoLBoardLive(spot.MAX_ROWS, spot.MAX_COLS);
 
     public void render() {
         window = slWindow.getWindow();
@@ -61,8 +61,8 @@ public class slSingleBatchRenderer {
         GL.createCapabilities();
         glEnable(GL_DEPTH_TEST);
         glEnable(GL_CULL_FACE);
-        glViewport(0, 0, WIN_WIDTH, WIN_HEIGHT);
-        glClearColor(red, green, blue, alpha);
+        glViewport(0, 0, spot.WIN_WIDTH, spot.WIN_HEIGHT);
+        glClearColor(spot.red, spot.green, spot.blue, spot.alpha);
         this.shader_program = glCreateProgram();
         int vs = glCreateShader(GL_VERTEX_SHADER);
         glShaderSource(vs,
@@ -92,7 +92,7 @@ public class slSingleBatchRenderer {
 
         int xmin = offset;
         int xmax = xmin + length;
-        int ymax = WIN_HEIGHT - offset;
+        int ymax = spot.WIN_HEIGHT - offset;
         int ymin = ymax - length;
         int index = 0;
 
@@ -187,7 +187,7 @@ public class slSingleBatchRenderer {
             }
             // Reset the board randomly
             if (isKeyPressed(GLFW_KEY_R)) {
-                GoLBoard = new slGoLBoardLive(MAX_ROWS, MAX_COLS);
+                GoLBoard = new slGoLBoardLive(spot.MAX_ROWS, spot.MAX_COLS);
                 resetKeypressEvent(GLFW_KEY_R);
             }
             // Load board file
@@ -201,11 +201,11 @@ public class slSingleBatchRenderer {
                         Scanner myReader = new Scanner(saveFile);
                         int fileRow = Integer.parseInt(myReader.nextLine());
                         int fileCol = Integer.parseInt(myReader.nextLine());
-                        MAX_ROWS = fileRow;
-                        MAX_COLS = fileCol;
-                        boolean[][] loadedBoard = new boolean[MAX_ROWS][MAX_COLS];
-                        for (int r = 0; r < MAX_ROWS; r++) {
-                            for (int c = 0; c < MAX_COLS; c++) {
+                        spot.MAX_ROWS = fileRow;
+                        spot.MAX_COLS = fileCol;
+                        boolean[][] loadedBoard = new boolean[spot.MAX_ROWS][spot.MAX_COLS];
+                        for (int r = 0; r < spot.MAX_ROWS; r++) {
+                            for (int c = 0; c < spot.MAX_COLS; c++) {
                                 String next = myReader.next();
                                 while (next.equals(" ")) {
                                     next = myReader.next();
@@ -233,8 +233,8 @@ public class slSingleBatchRenderer {
             int vbo = glGenBuffers();
             int ibo = glGenBuffers();
 
-            float[] vertices = getVertices(MAX_ROWS, MAX_COLS, vps, fpv, offset, length, padding);
-            int[] indices = getIndices(MAX_ROWS, MAX_COLS, ips, vps);
+            float[] vertices = getVertices(spot.MAX_ROWS, spot.MAX_COLS, spot.vps, spot.fpv, spot.offset, spot.length, spot.padding);
+            int[] indices = getIndices(spot.MAX_ROWS, spot.MAX_COLS, spot.ips, spot.vps);
 
             glBindBuffer(GL_ARRAY_BUFFER, vbo);
             glBufferData(GL_ARRAY_BUFFER, (FloatBuffer) BufferUtils.
@@ -256,15 +256,15 @@ public class slSingleBatchRenderer {
             glUniformMatrix4fv(vpMatLocation, false,
                     viewProjMatrix.get(myFloatBuffer));
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-            for (int row = 0; row < MAX_ROWS; row++) {
-                for (int col = 0; col < MAX_COLS; col++) {
+            for (int row = 0; row < spot.MAX_ROWS; row++) {
+                for (int col = 0; col < spot.MAX_COLS; col++) {
                     if (GoLBoard.getLiveCellArray()[row][col]) {
-                        glUniform3f(renderColorLocation, ALIVE.x, ALIVE.y, ALIVE.z);
+                        glUniform3f(renderColorLocation, spot.ALIVE.x, spot.ALIVE.y, spot.ALIVE.z);
                     } else {
-                        glUniform3f(renderColorLocation, DEAD.x, DEAD.y, DEAD.z);
+                        glUniform3f(renderColorLocation, spot.DEAD.x, spot.DEAD.y, spot.DEAD.z);
                     }
-                    glDrawElements(GL_TRIANGLES, ips, GL_UNSIGNED_INT, (long) vertexCount * ips);
-                    vertexCount+=vps;
+                    glDrawElements(GL_TRIANGLES, spot.ips, GL_UNSIGNED_INT, (long) vertexCount * spot.ips);
+                    vertexCount += spot.vps;
                 }
             }
             // Save here before so current frame is saved!
@@ -277,11 +277,11 @@ public class slSingleBatchRenderer {
                     fileName += ".ca";
                 }
                 try (FileWriter writer = new FileWriter(fileName)) {
-                    writer.write(MAX_ROWS+"\n");
-                    writer.write(MAX_COLS+"\n");
-                    for (int r = 0; r < MAX_ROWS; r++) {
+                    writer.write(spot.MAX_ROWS+"\n");
+                    writer.write(spot.MAX_COLS+"\n");
+                    for (int r = 0; r < spot.MAX_ROWS; r++) {
                         String rowString = "";
-                        for (int c = 0; c < MAX_COLS; c++) {
+                        for (int c = 0; c < spot.MAX_COLS; c++) {
                             if (curCellArray[r][c]) {
                                 rowString += "1 ";
                             } else {
