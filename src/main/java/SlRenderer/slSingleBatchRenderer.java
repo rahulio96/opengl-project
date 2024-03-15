@@ -1,13 +1,20 @@
 package SlRenderer;
 
+import csc133.spot;
 import org.joml.Matrix4f;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL;
 
+import javax.swing.*;
+import java.io.File;
+import java.io.FileWriter;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
+import java.util.Scanner;
 
-import static csc133.spot.*;
+import static SlRenderer.slKeyListener.isKeyPressed;
+import static SlRenderer.slKeyListener.resetKeypressEvent;
+//import static csc133.spot.*;
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.glfw.GLFW.glfwSwapBuffers;
 import static org.lwjgl.opengl.GL11.*;
@@ -24,8 +31,9 @@ public class slSingleBatchRenderer {
     private static int shader_program;
     private static Matrix4f viewProjMatrix = new Matrix4f();
     private static FloatBuffer myFloatBuffer = BufferUtils.createFloatBuffer(OGL_MATRIX_SIZE);
-    private static int vpMatLocation = 0, renderColorLocation = 0;
+    private static int vpMatLocation = 0, renderColorLocation = 1;
     private static int coordinatesPerVertex = 2;
+    private static slGoLBoard GoLBoard = new slGoLBoardLive(spot.MAX_ROWS, spot.MAX_COLS);
 
     public void render() {
         window = slWindow.getWindow();
@@ -53,8 +61,8 @@ public class slSingleBatchRenderer {
         GL.createCapabilities();
         glEnable(GL_DEPTH_TEST);
         glEnable(GL_CULL_FACE);
-        glViewport(0, 0, WIN_WIDTH, WIN_HEIGHT);
-        glClearColor(red, green, blue, alpha);
+        glViewport(0, 0, spot.WIN_WIDTH, spot.WIN_HEIGHT);
+        glClearColor(spot.red, spot.green, spot.blue, spot.alpha);
         this.shader_program = glCreateProgram();
         int vs = glCreateShader(GL_VERTEX_SHADER);
         glShaderSource(vs,
@@ -66,9 +74,9 @@ public class slSingleBatchRenderer {
         glAttachShader(shader_program, vs);
         int fs = glCreateShader(GL_FRAGMENT_SHADER);
         glShaderSource(fs,
-                "uniform vec3 color;" +
+                "uniform vec3 renderColorLocation;" +
                         "void main(void) {" +
-                        " gl_FragColor = vec4("+renderColorLocation+","+ VEC_RC.x+","+ VEC_RC.y+","+ VEC_RC.z+");" +
+                        " gl_FragColor = vec4(renderColorLocation, 1.0);" +
                         "}");
         glCompileShader(fs);
         glAttachShader(shader_program, fs);
@@ -84,7 +92,7 @@ public class slSingleBatchRenderer {
 
         int xmin = offset;
         int xmax = xmin + length;
-        int ymax = WIN_HEIGHT - offset;
+        int ymax = spot.WIN_HEIGHT - offset;
         int ymin = ymax - length;
         int index = 0;
 
@@ -131,14 +139,146 @@ public class slSingleBatchRenderer {
     }
 
     void renderObjects() {
+        boolean isDelayFrame = false;
+        boolean isHaltRendering = false;
+        boolean alreadyHalted = false;
+        boolean isDisplayFPS = false;
+        double curTime;
+        double prevTime = glfwGetTime();
+        double deltaTime;
+        int frameCount = 0;
+        double fps;
+
+        glfwSetKeyCallback(window, slKeyListener::keyCallback);
         while (!glfwWindowShouldClose(window)) {
+            if (isDelayFrame) {
+                try {
+                    Thread.sleep(500);
+                } catch (Exception e) {
+                    System.out.println("Error when delaying: " + e.getMessage());
+                }
+            }
+            if (isDisplayFPS) {
+                curTime = glfwGetTime();
+                deltaTime = curTime - prevTime;
+                frameCount++;
+                fps = frameCount / deltaTime;
+                System.out.println("FPS: " + fps);
+                frameCount = 0;
+                prevTime = curTime;
+            }
+            glfwPollEvents();
+            // Delay framerate
+            if (isKeyPressed(GLFW_KEY_D)) {
+                isHaltRendering = true;
+                isDelayFrame = !isDelayFrame;
+                resetKeypressEvent(GLFW_KEY_D);
+                if (!alreadyHalted) {
+                    isHaltRendering = false;
+                }
+            }
+            // Stop rendering
+            if (isKeyPressed(GLFW_KEY_H)) {
+                isHaltRendering = true;
+                alreadyHalted = true;
+                resetKeypressEvent(GLFW_KEY_H);
+            }
+            // Resume Rendering
+            if (isKeyPressed(GLFW_KEY_SPACE)) {
+                isHaltRendering = false;
+                alreadyHalted = false;
+                resetKeypressEvent(GLFW_KEY_SPACE);
+            }
+            // Usage (Help)
+            if (isKeyPressed(GLFW_KEY_SLASH) && isKeyPressed(GLFW_KEY_LEFT_SHIFT)) {
+                isHaltRendering = true;
+                System.out.println("Print this text --> ?");
+                System.out.println("Toggle 500 ms frame delay --> d");
+                System.out.println("Toggle frame rate display --> f");
+                System.out.println("Halt the engine --> h");
+                System.out.println("Reset board --> r");
+                System.out.println("Resume engine --> SPACE");
+                System.out.println("Save engine state to a file --> s");
+                System.out.println("Load engine state from a file --> l");
+                System.out.println("Exit application --> ESC");
+                resetKeypressEvent(GLFW_KEY_SLASH);
+                resetKeypressEvent(GLFW_KEY_LEFT_SHIFT);
+                if (!alreadyHalted) {
+                    isHaltRendering = false;
+                }
+            }
+            // Close window
+            if (isKeyPressed(GLFW_KEY_ESCAPE)) {
+                isHaltRendering = true;
+                glfwSetWindowShouldClose(window, true);
+                resetKeypressEvent(GLFW_KEY_ESCAPE);
+                if (!alreadyHalted) {
+                    isHaltRendering = false;
+                }
+            }
+            // Reset the board randomly
+            if (isKeyPressed(GLFW_KEY_R)) {
+                isHaltRendering = true;
+                GoLBoard = new slGoLBoardLive(spot.MAX_ROWS, spot.MAX_COLS);
+                resetKeypressEvent(GLFW_KEY_R);
+                if (!alreadyHalted) {
+                    isHaltRendering = false;
+                }
+            }
+            // Toggle framerate in console
+            if (isKeyPressed(GLFW_KEY_F)) {
+                isHaltRendering = true;
+                isDisplayFPS = !isDisplayFPS;
+                resetKeypressEvent(GLFW_KEY_F);
+                if (!alreadyHalted) {
+                    isHaltRendering = false;
+                }
+            }
+            // Load board file
+            if (isKeyPressed(GLFW_KEY_L)) {
+                isHaltRendering = true;
+                JFileChooser fc = new JFileChooser();
+                int userInput = fc.showOpenDialog(null);
+                if (userInput == JFileChooser.APPROVE_OPTION) {
+                    try {
+                        File saveFile = fc.getSelectedFile();
+                        Scanner myReader = new Scanner(saveFile);
+                        int fileRow = Integer.parseInt(myReader.nextLine());
+                        int fileCol = Integer.parseInt(myReader.nextLine());
+                        spot.MAX_ROWS = fileRow;
+                        spot.MAX_COLS = fileCol;
+                        boolean[][] loadedBoard = new boolean[spot.MAX_ROWS][spot.MAX_COLS];
+                        for (int r = 0; r < spot.MAX_ROWS; r++) {
+                            for (int c = 0; c < spot.MAX_COLS; c++) {
+                                String next = myReader.next();
+                                while (next.equals(" ")) {
+                                    next = myReader.next();
+                                }
+                                if (Integer.parseInt(next) == 1) {
+                                    loadedBoard[r][c] = true;
+                                } else {
+                                    loadedBoard[r][c] = false;
+                                }
+                            }
+                        }
+                        GoLBoard.liveCellArray = loadedBoard;
+                    } catch (Exception e) {
+                        System.out.println("Error when reading file: "+e.getMessage());
+                    }
+
+                }
+                resetKeypressEvent(GLFW_KEY_L);
+                isHaltRendering = false;
+            }
+
+            int vertexCount = 0;
             glfwPollEvents();
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             int vbo = glGenBuffers();
             int ibo = glGenBuffers();
 
-            float[] vertices = getVertices(MAX_ROWS, MAX_COLS, vps, fpv, offset, length, padding);
-            int[] indices = getIndices(MAX_ROWS, MAX_COLS, ips, vps);
+            float[] vertices = getVertices(spot.MAX_ROWS, spot.MAX_COLS, spot.vps, spot.fpv, spot.offset, spot.length, spot.padding);
+            int[] indices = getIndices(spot.MAX_ROWS, spot.MAX_COLS, spot.ips, spot.vps);
 
             glBindBuffer(GL_ARRAY_BUFFER, vbo);
             glBufferData(GL_ARRAY_BUFFER, (FloatBuffer) BufferUtils.
@@ -159,12 +299,56 @@ public class slSingleBatchRenderer {
 
             glUniformMatrix4fv(vpMatLocation, false,
                     viewProjMatrix.get(myFloatBuffer));
-
-            glUniform3f(renderColorLocation, VEC_RC.x, VEC_RC.y, VEC_RC.z);
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+            for (int row = 0; row < spot.MAX_ROWS; row++) {
+                for (int col = 0; col < spot.MAX_COLS; col++) {
+                    if (GoLBoard.getLiveCellArray()[row][col]) {
+                        glUniform3f(renderColorLocation, spot.ALIVE.x, spot.ALIVE.y, spot.ALIVE.z);
+                    } else {
+                        glUniform3f(renderColorLocation, spot.DEAD.x, spot.DEAD.y, spot.DEAD.z);
+                    }
+                    glDrawElements(GL_TRIANGLES, spot.ips, GL_UNSIGNED_INT, (long) vertexCount * spot.ips);
+                    vertexCount += spot.vps;
+                }
+            }
+            // Save here before so current frame is saved!
+            // Safe board to file
+            if (isKeyPressed(GLFW_KEY_S)) {
+                isHaltRendering = true;
+                boolean[][] curCellArray = GoLBoard.getLiveCellArray();
+                try {
+                    String fileName = JOptionPane.showInputDialog("Please type the file's name");
 
-            glDrawElements(GL_TRIANGLES, indices.length, GL_UNSIGNED_INT, 0L);
-            glfwSwapBuffers(window);
+                    if (!fileName.contains(".ca")) {
+                        fileName += ".ca";
+                    }
+                    try (FileWriter writer = new FileWriter(fileName)) {
+                        writer.write(spot.MAX_ROWS + "\n");
+                        writer.write(spot.MAX_COLS + "\n");
+                        for (int r = 0; r < spot.MAX_ROWS; r++) {
+                            String rowString = "";
+                            for (int c = 0; c < spot.MAX_COLS; c++) {
+                                if (curCellArray[r][c]) {
+                                    rowString += "1 ";
+                                } else {
+                                    rowString += "0 ";
+                                }
+                            }
+                            writer.write(rowString + "\n");
+                        }
+                        JOptionPane.showMessageDialog(null, "GoL Board saved to: " + fileName);
+                    } catch (Exception e) {
+                        JOptionPane.showMessageDialog(null, "Error saving board to file: " + e.getMessage());
+                    }
+                } catch (Exception ignored) {}
+                resetKeypressEvent(GLFW_KEY_S);
+                isHaltRendering = false;
+            }
+            if (!isHaltRendering) {
+                GoLBoard.updateNextCellArray();
+                GoLBoard.copyLiveToNext();
+                glfwSwapBuffers(window);
+            }
         }
     } // renderObjects
 }
